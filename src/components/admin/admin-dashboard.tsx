@@ -447,20 +447,16 @@ export function AdminDashboard({
                   </div>
                   <div>
                     <Label htmlFor="record-stage-filter">按期数筛选</Label>
-                    <select
+                    <SearchableSelect
                       id="record-stage-filter"
-                      className="h-11 w-full rounded-xl border border-white/10 bg-white/5 px-3 text-sm text-white"
-                      style={{ colorScheme: "dark" }}
+                      placeholder="全部期数"
                       value={recordStageFilter}
-                      onChange={(event) => setRecordStageFilter(event.target.value)}
-                    >
-                      <option value="">全部期数</option>
-                      {data.stages.map((stage) => (
-                        <option key={stage.id} value={stage.id}>
-                          Ver.{stage.versionLabel}
-                        </option>
-                      ))}
-                    </select>
+                      onChange={setRecordStageFilter}
+                      options={data.stages.map((s) => ({
+                        value: s.id,
+                        label: `Ver.${s.versionLabel} · ${s.bossName}`,
+                      }))}
+                    />
                   </div>
                 </div>
               </div>
@@ -520,22 +516,18 @@ export function AdminDashboard({
                 </div>
                 <div>
                   <Label htmlFor="record-stage">王棋期数</Label>
-                  <select
+                  <SearchableSelect
                     id="record-stage"
-                    className="h-11 w-full rounded-xl border border-white/10 bg-white/5 px-3 text-sm text-white"
-                    style={{ colorScheme: "dark" }}
+                    placeholder="请选择期数"
                     value={recordForm.stageId}
-                    onChange={(event) =>
-                      setRecordForm((current) => ({ ...current, stageId: event.target.value }))
+                    onChange={(val) =>
+                      setRecordForm((current) => ({ ...current, stageId: val }))
                     }
-                  >
-                    <option value="">请选择期数</option>
-                    {data.stages.map((stage) => (
-                      <option key={stage.id} value={stage.id}>
-                        Ver.{stage.versionLabel} · {stage.bossName}
-                      </option>
-                    ))}
-                  </select>
+                    options={data.stages.map((s) => ({
+                      value: s.id,
+                      label: `Ver.${s.versionLabel} · ${s.bossName}`,
+                    }))}
+                  />
                 </div>
                 <div>
                   <Label htmlFor="record-gold">金数</Label>

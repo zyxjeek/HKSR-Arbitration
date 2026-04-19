@@ -24,6 +24,7 @@ export function StageBarChart({ stats }: { stats: StageMinStat[] }) {
       },
       yAxis: {
         type: "category",
+        inverse: true,
         axisLabel: { color: "#eaf6ff" },
         data: stats.map((item) => item.characterName),
       },
