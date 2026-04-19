@@ -34,6 +34,7 @@ export interface Announcement {
   id: string;
   title: string;
   bodyText: string;
+  isPinned: boolean;
   publishedAt: string;
   createdAt: string;
   updatedAt: string;

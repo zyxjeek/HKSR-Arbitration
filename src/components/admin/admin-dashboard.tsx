@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import { LogOut, Pencil, RefreshCcw, Trash2 } from "lucide-react";
+import { LogOut, Pencil, Pin, PinOff, RefreshCcw, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -39,30 +39,57 @@ async function requestJson<T>(input: RequestInfo, init?: RequestInit): Promise<T
   return body as T;
 }
 
+// 把任意时间点格式化为北京（UTC+8）时区下的 datetime-local 字符串
+function toBeijingDateTimeLocal(date: Date) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Shanghai",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(date);
+  const get = (type: string) => parts.find((p) => p.type === type)?.value ?? "";
+  // Intl 在某些环境把午夜输出为 "24"，需要兜底
+  const hour = get("hour") === "24" ? "00" : get("hour");
+  return `${get("year")}-${get("month")}-${get("day")}T${hour}:${get("minute")}`;
+}
+
 function toDateTimeLocal(input: string) {
-  const date = new Date(input);
-  const timezoneOffset = date.getTimezoneOffset();
-  const local = new Date(date.getTime() - timezoneOffset * 60_000);
-  return local.toISOString().slice(0, 16);
+  return toBeijingDateTimeLocal(new Date(input));
+}
+
+function nowInUTC8() {
+  return toBeijingDateTimeLocal(new Date());
+}
+
+// 把"YYYY-MM-DDTHH:MM"字符串按北京时间（UTC+8）解释，返回 UTC ISO 字符串
+function beijingLocalToISO(local: string): string {
+  const match = local.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+  if (!match) {
+    return new Date(local).toISOString();
+  }
+  const [, y, m, d, h, mm] = match;
+  return new Date(Date.UTC(Number(y), Number(m) - 1, Number(d), Number(h) - 8, Number(mm))).toISOString();
 }
 
 type CharacterFormState = { name: string };
 type StageFormState = { versionLabel: string; bossName: string };
 type RecordFormState = { characterId: string; stageId: string; goldCost: string; videoUrl: string };
-type AnnouncementFormState = { title: string; bodyText: string; publishedAt: string };
+type AnnouncementFormState = {
+  title: string;
+  bodyText: string;
+  publishedAt: string;
+  isPinned: boolean;
+};
 
 const emptyCharacterForm: CharacterFormState = { name: "" };
 const emptyStageForm: StageFormState = { versionLabel: "", bossName: "" };
 const emptyRecordForm: RecordFormState = { characterId: "", stageId: "", goldCost: "", videoUrl: "" };
-function nowInUTC8() {
-  const now = new Date();
-  const offset = 8 * 60; // UTC+8 in minutes
-  const local = new Date(now.getTime() + (offset + now.getTimezoneOffset()) * 60_000);
-  return local.toISOString().slice(0, 16);
-}
 
 function makeEmptyAnnouncementForm(): AnnouncementFormState {
-  return { title: "", bodyText: "", publishedAt: nowInUTC8() };
+  return { title: "", bodyText: "", publishedAt: nowInUTC8(), isPinned: false };
 }
 
 export function AdminDashboard({
@@ -177,7 +204,7 @@ export function AdminDashboard({
       method,
       body: JSON.stringify({
         ...announcementForm,
-        publishedAt: new Date(announcementForm.publishedAt).toISOString(),
+        publishedAt: beijingLocalToISO(announcementForm.publishedAt),
       }),
     });
     await refreshData();
@@ -224,7 +251,22 @@ export function AdminDashboard({
       title: announcement.title,
       bodyText: announcement.bodyText,
       publishedAt: toDateTimeLocal(announcement.publishedAt),
+      isPinned: announcement.isPinned,
     });
+  }
+
+  async function togglePin(announcement: Announcement) {
+    await requestJson(`/api/admin/announcements?id=${announcement.id}`, {
+      method: "PUT",
+      body: JSON.stringify({
+        title: announcement.title,
+        bodyText: announcement.bodyText,
+        publishedAt: announcement.publishedAt,
+        isPinned: !announcement.isPinned,
+      }),
+    });
+    await refreshData();
+    handleSuccess(announcement.isPinned ? "已取消置顶。" : "已置顶。");
   }
 
   async function handleLogout() {
@@ -662,7 +704,14 @@ export function AdminDashboard({
                   >
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                       <div className="space-y-2">
-                        <p className="font-semibold text-white">{announcement.title}</p>
+                        <p className="flex items-center gap-2 font-semibold text-white">
+                          {announcement.isPinned ? (
+                            <span className="inline-flex items-center gap-1 rounded-full border border-amber-300/40 bg-amber-300/15 px-2 py-0.5 text-xs font-medium text-amber-100">
+                              <Pin className="size-3" />置顶
+                            </span>
+                          ) : null}
+                          {announcement.title}
+                        </p>
                         <p className="font-mono text-xs text-cyan-200/75">
                           {formatPublishedAt(announcement.publishedAt)}
                         </p>
@@ -670,7 +719,25 @@ export function AdminDashboard({
                           {announcement.bodyText}
                         </p>
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex flex-wrap gap-2">
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => withPending(() => togglePin(announcement))}
+                          disabled={!mutationsEnabled || isPending}
+                        >
+                          {announcement.isPinned ? (
+                            <>
+                              <PinOff className="size-4" />
+                              取消置顶
+                            </>
+                          ) : (
+                            <>
+                              <Pin className="size-4" />
+                              置顶
+                            </>
+                          )}
+                        </Button>
                         <Button
                           variant="secondary"
                           size="sm"
@@ -739,6 +806,23 @@ export function AdminDashboard({
                     }
                   />
                 </div>
+                <label className="flex items-center gap-2 text-sm text-white/80" htmlFor="announcement-pinned">
+                  <input
+                    id="announcement-pinned"
+                    type="checkbox"
+                    className="size-4 accent-amber-400"
+                    style={{ colorScheme: "dark" }}
+                    checked={announcementForm.isPinned}
+                    onChange={(event) =>
+                      setAnnouncementForm((current) => ({
+                        ...current,
+                        isPinned: event.target.checked,
+                      }))
+                    }
+                  />
+                  <Pin className="size-4 text-amber-200" />
+                  置顶此公告
+                </label>
                 <div className="flex gap-2">
                   <Button onClick={() => withPending(submitAnnouncement)} disabled={!mutationsEnabled || isPending}>
                     {editingAnnouncement ? "保存修改" : "发布公告"}

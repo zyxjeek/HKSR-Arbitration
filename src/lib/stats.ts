@@ -92,9 +92,12 @@ export function sortStages(stages: ArbiterStage[]) {
 }
 
 export function sortAnnouncements(announcements: Announcement[]) {
-  return [...announcements].sort(
-    (a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime(),
-  );
+  return [...announcements].sort((a, b) => {
+    if (a.isPinned !== b.isPinned) {
+      return a.isPinned ? -1 : 1;
+    }
+    return new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime();
+  });
 }
 
 export function buildJoinedRecordMap(

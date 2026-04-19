@@ -55,10 +55,14 @@ create table if not exists public.announcements (
   id uuid primary key default gen_random_uuid(),
   title text not null,
   body_text text not null,
+  is_pinned boolean not null default false,
   published_at timestamptz not null default timezone('utc', now()),
   created_at timestamptz not null default timezone('utc', now()),
   updated_at timestamptz not null default timezone('utc', now())
 );
+
+alter table public.announcements
+  add column if not exists is_pinned boolean not null default false;
 
 drop trigger if exists announcements_set_updated_at on public.announcements;
 create trigger announcements_set_updated_at
@@ -77,6 +81,9 @@ create index if not exists idx_clear_records_stage_character
 
 create index if not exists idx_announcements_published_at
   on public.announcements(published_at desc);
+
+create index if not exists idx_announcements_pinned_published_at
+  on public.announcements(is_pinned desc, published_at desc);
 
 create or replace view public.stage_character_min_records as
 with min_gold as (

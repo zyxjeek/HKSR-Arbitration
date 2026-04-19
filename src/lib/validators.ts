@@ -58,6 +58,7 @@ export const announcementInputSchema = z.object({
     .trim()
     .min(1, "请设置发布时间")
     .refine((value) => !Number.isNaN(Date.parse(value)), "发布时间格式无效"),
+  isPinned: z.coerce.boolean().optional().default(false),
 });
 
 export const idSchema = z.object({

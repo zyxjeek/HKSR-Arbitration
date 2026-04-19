@@ -39,6 +39,7 @@ function mapAnnouncementRow(row: Record<string, unknown>): Announcement {
     id: String(row.id),
     title: String(row.title),
     bodyText: String(row.body_text),
+    isPinned: Boolean(row.is_pinned),
     publishedAt: String(row.published_at),
     createdAt: String(row.created_at),
     updatedAt: String(row.updated_at),
@@ -136,6 +137,7 @@ export async function getHomeData(): Promise<HomeData> {
       .from("announcements")
       .select("*")
       .lte("published_at", new Date().toISOString())
+      .order("is_pinned", { ascending: false })
       .order("published_at", { ascending: false })
       .limit(5),
   ]);
@@ -295,6 +297,7 @@ export async function getAnnouncementsData(): Promise<Announcement[]> {
     .from("announcements")
     .select("*")
     .lte("published_at", new Date().toISOString())
+    .order("is_pinned", { ascending: false })
     .order("published_at", { ascending: false });
 
   if (result.error) {
@@ -334,7 +337,11 @@ export async function getAdminBootstrapData(): Promise<AdminBootstrapData> {
           `,
         )
         .order("created_at", { ascending: false }),
-      supabase.from("announcements").select("*").order("published_at", { ascending: false }),
+      supabase
+        .from("announcements")
+        .select("*")
+        .order("is_pinned", { ascending: false })
+        .order("published_at", { ascending: false }),
       supabase
         .from("pending_records")
         .select(

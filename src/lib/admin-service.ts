@@ -336,6 +336,7 @@ export async function insertAnnouncement(payload: unknown) {
     .insert({
       title: parsed.title,
       body_text: parsed.bodyText,
+      is_pinned: parsed.isPinned,
       published_at: new Date(parsed.publishedAt).toISOString(),
     })
     .select("*")
@@ -362,6 +363,7 @@ export async function updateAnnouncement(id: string, payload: unknown) {
     .update({
       title: parsed.title,
       body_text: parsed.bodyText,
+      is_pinned: parsed.isPinned,
       published_at: new Date(parsed.publishedAt).toISOString(),
     })
     .eq("id", id)

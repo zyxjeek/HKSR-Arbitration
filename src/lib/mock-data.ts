@@ -43,6 +43,7 @@ const announcements: Announcement[] = [
     title: "站点 Demo 数据已接入",
     bodyText:
       "当前仓库默认使用演示数据启动，方便先看页面结构。\n配置 Supabase 环境变量后，页面会自动切换到真实数据库。",
+    isPinned: false,
     publishedAt: "2026-04-10T12:00:00.000Z",
     createdAt: "2026-04-10T12:00:00.000Z",
     updatedAt: "2026-04-10T12:00:00.000Z",
@@ -52,6 +53,7 @@ const announcements: Announcement[] = [
     title: "统计口径说明",
     bodyText:
       '角色榜单采用”各期最低金数平均值”排序。',
+    isPinned: false,
     publishedAt: "2026-04-12T12:00:00.000Z",
     createdAt: "2026-04-12T12:00:00.000Z",
     updatedAt: "2026-04-12T12:00:00.000Z",
