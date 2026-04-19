@@ -48,9 +48,10 @@ export function CharacterLineChart({ timeline }: { timeline: CharacterTimelinePo
           name === "最低金数" ? hasRecorded : hasMissing,
         ),
         textStyle: { color: "#b8d3ea" },
-        top: 0,
+        top: 8,
+        itemGap: 18,
       },
-      grid: { left: 24, right: 20, top: 36, bottom: 24, containLabel: true },
+      grid: { left: 24, right: 20, top: 72, bottom: 24, containLabel: true },
       xAxis: {
         type: "category",
         axisLabel: { color: "#eaf6ff" },
@@ -84,7 +85,8 @@ export function CharacterLineChart({ timeline }: { timeline: CharacterTimelinePo
           itemStyle: { color: "#ff7a9e" },
           label: {
             show: true,
-            position: "top",
+            position: "bottom",
+            distance: 6,
             color: "#ffc7d2",
             fontSize: 11,
             formatter: "未收录",
@@ -100,7 +102,7 @@ export function CharacterLineChart({ timeline }: { timeline: CharacterTimelinePo
   }
 
   return (
-    <div className="chart-shell rounded-3xl border border-white/10 bg-[#04111f] p-4">
+    <div className="chart-shell rounded-3xl border border-white/8 p-4 sm:p-5">
       <EChartsReact
         option={option}
         style={{ height: 420, width: "100%" }}

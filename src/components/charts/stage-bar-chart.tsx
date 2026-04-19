@@ -47,7 +47,7 @@ export function StageBarChart({ stats }: { stats: StageMinStat[] }) {
   }
 
   return (
-    <div className="chart-shell rounded-3xl border border-white/10 bg-[#04111f] p-4">
+    <div className="chart-shell rounded-3xl border border-white/8 p-4 sm:p-5">
       <EChartsReact
         option={option}
         style={{ height: 420, width: "100%" }}
