@@ -576,6 +576,80 @@ export function AdminDashboard({
           </div>
         </TabsContent>
 
+        <TabsContent value="submissions">
+          <Card>
+            <div className="mb-4">
+              <CardTitle className="mb-2">待审批投稿</CardTitle>
+              <CardDescription>
+                游客通过 /submit 页面提交的记录。审批通过后会迁入正式通关记录，拒绝则直接删除。
+              </CardDescription>
+            </div>
+            {data.pendingRecords.length === 0 ? (
+              <p className="rounded-2xl border border-white/10 bg-white/5 p-6 text-center text-sm text-white/55">
+                暂无待审批投稿。
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {data.pendingRecords.map((item) => (
+                  <div key={item.id} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                      <div className="space-y-1">
+                        <p className="font-semibold text-white">
+                          {item.characterName} · Ver.{item.stageVersionLabel}
+                        </p>
+                        <p className="text-sm text-white/62">{item.stageBossName}</p>
+                        <p className="font-mono text-xs text-cyan-200/75">
+                          {item.goldCost} 金 · 提交于 {formatPublishedAt(item.createdAt)}
+                        </p>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <Button asChild variant="outline" size="sm">
+                          <a href={item.videoUrl} target="_blank" rel="noreferrer">
+                            查看视频
+                          </a>
+                        </Button>
+                        <Button
+                          size="sm"
+                          onClick={() =>
+                            withPending(async () => {
+                              await requestJson(`/api/admin/submissions?id=${item.id}`, {
+                                method: "POST",
+                              });
+                              await refreshData();
+                              handleSuccess("已审批通过。");
+                            })
+                          }
+                          disabled={!mutationsEnabled || isPending}
+                        >
+                          通过
+                        </Button>
+                        <Button
+                          variant="danger"
+                          size="sm"
+                          onClick={() => {
+                            if (!window.confirm("确认拒绝并删除这条投稿？")) return;
+                            withPending(async () => {
+                              await requestJson(`/api/admin/submissions?id=${item.id}`, {
+                                method: "DELETE",
+                              });
+                              await refreshData();
+                              handleSuccess("已拒绝。");
+                            });
+                          }}
+                          disabled={!mutationsEnabled || isPending}
+                        >
+                          <Trash2 className="size-4" />
+                          拒绝
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </Card>
+        </TabsContent>
+
         <TabsContent value="announcements">
           <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_24rem]">
             <Card>

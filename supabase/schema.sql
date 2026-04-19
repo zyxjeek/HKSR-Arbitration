@@ -37,6 +37,20 @@ create table if not exists public.clear_records (
   constraint clear_records_video_url_check check (video_url ~* '^https?://')
 );
 
+create table if not exists public.pending_records (
+  id uuid primary key default gen_random_uuid(),
+  character_id uuid not null references public.characters(id) on delete cascade,
+  stage_id uuid not null references public.arbiter_stages(id) on delete cascade,
+  gold_cost integer not null,
+  video_url text not null,
+  created_at timestamptz not null default timezone('utc', now()),
+  constraint pending_records_gold_cost_check check (gold_cost >= 0 and gold_cost <= 20),
+  constraint pending_records_video_url_check check (video_url ~* '^https?://')
+);
+
+create index if not exists idx_pending_records_created_at
+  on public.pending_records(created_at desc);
+
 create table if not exists public.announcements (
   id uuid primary key default gen_random_uuid(),
   title text not null,

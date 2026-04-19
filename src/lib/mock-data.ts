@@ -152,5 +152,6 @@ export function getMockAdminBootstrap(): AdminBootstrapData {
     stages,
     announcements,
     records,
+    pendingRecords: [],
   };
 }

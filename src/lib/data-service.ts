@@ -6,6 +6,7 @@ import {
   type CharacterDetailData,
   type HomeData,
   type JoinedRecord,
+  type PendingRecord,
   type StageDetailData,
 } from "@/lib/types";
 import { hasServiceSupabaseEnv } from "@/lib/env";
@@ -267,26 +268,42 @@ export async function getAdminBootstrapData(): Promise<AdminBootstrapData> {
     return getMockAdminBootstrap();
   }
 
-  const [charactersResult, stagesResult, recordsResult, announcementsResult] = await Promise.all([
-    supabase.from("characters").select("*").order("name", { ascending: true }),
-    supabase.from("arbiter_stages").select("*").order("version_sort_key", { ascending: true }),
-    supabase
-      .from("clear_records")
-      .select(
-        `
-          id,
-          character_id,
-          stage_id,
-          gold_cost,
-          video_url,
-          created_at,
-          character:characters!clear_records_character_id_fkey(id, name, slug),
-          stage:arbiter_stages!clear_records_stage_id_fkey(id, version_label, version_sort_key, boss_name)
-        `,
-      )
-      .order("created_at", { ascending: false }),
-    supabase.from("announcements").select("*").order("published_at", { ascending: false }),
-  ]);
+  const [charactersResult, stagesResult, recordsResult, announcementsResult, pendingResult] =
+    await Promise.all([
+      supabase.from("characters").select("*").order("name", { ascending: true }),
+      supabase.from("arbiter_stages").select("*").order("version_sort_key", { ascending: true }),
+      supabase
+        .from("clear_records")
+        .select(
+          `
+            id,
+            character_id,
+            stage_id,
+            gold_cost,
+            video_url,
+            created_at,
+            character:characters!clear_records_character_id_fkey(id, name, slug),
+            stage:arbiter_stages!clear_records_stage_id_fkey(id, version_label, version_sort_key, boss_name)
+          `,
+        )
+        .order("created_at", { ascending: false }),
+      supabase.from("announcements").select("*").order("published_at", { ascending: false }),
+      supabase
+        .from("pending_records")
+        .select(
+          `
+            id,
+            character_id,
+            stage_id,
+            gold_cost,
+            video_url,
+            created_at,
+            character:characters!pending_records_character_id_fkey(name),
+            stage:arbiter_stages!pending_records_stage_id_fkey(version_label, boss_name)
+          `,
+        )
+        .order("created_at", { ascending: false }),
+    ]);
 
   if (charactersResult.error) {
     throw charactersResult.error;
@@ -303,6 +320,26 @@ export async function getAdminBootstrapData(): Promise<AdminBootstrapData> {
   if (announcementsResult.error) {
     throw announcementsResult.error;
   }
+
+  if (pendingResult.error) {
+    throw pendingResult.error;
+  }
+
+  const pendingRecords: PendingRecord[] = (pendingResult.data ?? []).map((row) => {
+    const character = Array.isArray(row.character) ? row.character[0] : row.character;
+    const stage = Array.isArray(row.stage) ? row.stage[0] : row.stage;
+    return {
+      id: String(row.id),
+      characterId: String(row.character_id),
+      characterName: String(character?.name ?? ""),
+      stageId: String(row.stage_id),
+      stageVersionLabel: String(stage?.version_label ?? ""),
+      stageBossName: String(stage?.boss_name ?? ""),
+      goldCost: Number(row.gold_cost),
+      videoUrl: String(row.video_url),
+      createdAt: String(row.created_at),
+    };
+  });
 
   const records = (recordsResult.data ?? []).map((row) => {
     const character = Array.isArray(row.character) ? row.character[0] : row.character;
@@ -328,5 +365,40 @@ export async function getAdminBootstrapData(): Promise<AdminBootstrapData> {
     stages: (stagesResult.data ?? []).map(mapStageRow),
     records,
     announcements: (announcementsResult.data ?? []).map(mapAnnouncementRow),
+    pendingRecords,
+  };
+}
+
+/**
+ * Lightweight character+stage lookup for the public guest submission form.
+ * Does not expose any record/announcement data.
+ */
+export async function getPublicFormOptions(): Promise<{
+  characters: Character[];
+  stages: ArbiterStage[];
+}> {
+  if (!hasServiceSupabaseEnv()) {
+    return {
+      characters: mockDb.characters,
+      stages: sortStages(mockDb.stages),
+    };
+  }
+
+  const supabase = getServiceSupabaseClient();
+  if (!supabase) {
+    return { characters: mockDb.characters, stages: sortStages(mockDb.stages) };
+  }
+
+  const [charactersResult, stagesResult] = await Promise.all([
+    supabase.from("characters").select("*").order("name", { ascending: true }),
+    supabase.from("arbiter_stages").select("*").order("version_sort_key", { ascending: true }),
+  ]);
+
+  if (charactersResult.error) throw charactersResult.error;
+  if (stagesResult.error) throw stagesResult.error;
+
+  return {
+    characters: (charactersResult.data ?? []).map(mapCharacterRow),
+    stages: (stagesResult.data ?? []).map(mapStageRow),
   };
 }

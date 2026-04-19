@@ -90,9 +90,22 @@ export interface CharacterDetailData {
 
 export type AdminRecordListItem = JoinedRecord;
 
+export interface PendingRecord {
+  id: string;
+  characterId: string;
+  characterName: string;
+  stageId: string;
+  stageVersionLabel: string;
+  stageBossName: string;
+  goldCost: number;
+  videoUrl: string;
+  createdAt: string;
+}
+
 export interface AdminBootstrapData {
   characters: Character[];
   stages: ArbiterStage[];
   records: AdminRecordListItem[];
   announcements: Announcement[];
+  pendingRecords: PendingRecord[];
 }

@@ -12,3 +12,7 @@ export function hasServiceSupabaseEnv() {
       process.env.SUPABASE_SERVICE_ROLE_KEY,
   );
 }
+
+export function hasEmailEnv() {
+  return Boolean(process.env.RESEND_API_KEY && process.env.ADMIN_EMAIL);
+}

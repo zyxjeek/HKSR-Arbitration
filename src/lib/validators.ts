@@ -31,6 +31,17 @@ export const clearRecordInputSchema = z.object({
   videoUrl: z.url("请输入合法的视频链接"),
 });
 
+export const guestSubmissionSchema = z.object({
+  characterId: z.uuid("请选择有效的主C"),
+  stageId: z.uuid("请选择有效的王棋期数"),
+  goldCost: z.coerce
+    .number()
+    .int("金数必须为整数")
+    .min(0, "金数不能小于 0")
+    .max(20, "游客投稿的金数不能超过 20"),
+  videoUrl: z.url("请输入合法的视频链接"),
+});
+
 export const announcementInputSchema = z.object({
   title: z
     .string()

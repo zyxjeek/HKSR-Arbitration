@@ -5,6 +5,7 @@ export const siteConfig = {
   nav: [
     { href: "/", label: "首页" },
     { href: "/announcements", label: "公告合集" },
+    { href: "/submit", label: "游客投稿" },
     { href: "/admin", label: "管理后台" },
   ],
 };
@@ -17,5 +18,6 @@ export const adminSectionLabels = {
   characters: "角色管理",
   stages: "王棋敌人",
   records: "通关记录",
+  submissions: "游客投稿",
   announcements: "公告管理",
 } as const;

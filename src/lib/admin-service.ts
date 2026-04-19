@@ -6,6 +6,7 @@ import {
   announcementInputSchema,
   characterInputSchema,
   clearRecordInputSchema,
+  guestSubmissionSchema,
   idSchema,
   stageInputSchema,
 } from "@/lib/validators";
@@ -383,6 +384,129 @@ export async function deleteAnnouncement(id: string) {
   }
 
   const result = await db.supabase.from("announcements").delete().eq("id", id);
+
+  if (result.error) {
+    throw result.error;
+  }
+
+  return { ok: true as const };
+}
+
+/**
+ * Insert a guest submission into pending_records. No auth required.
+ * Returns joined info so the caller (API route) can email the admin.
+ */
+export async function insertGuestSubmission(payload: unknown) {
+  const parsed = guestSubmissionSchema.parse(payload);
+  const db = getAdminDbOrError();
+
+  if (!db.ok) {
+    return db;
+  }
+
+  const insertResult = await db.supabase
+    .from("pending_records")
+    .insert({
+      character_id: parsed.characterId,
+      stage_id: parsed.stageId,
+      gold_cost: parsed.goldCost,
+      video_url: parsed.videoUrl,
+    })
+    .select(
+      `
+        id,
+        gold_cost,
+        video_url,
+        created_at,
+        character:characters!pending_records_character_id_fkey(name),
+        stage:arbiter_stages!pending_records_stage_id_fkey(version_label, boss_name)
+      `,
+    )
+    .single();
+
+  if (insertResult.error) {
+    throw insertResult.error;
+  }
+
+  const row = insertResult.data as Record<string, unknown>;
+  const character = Array.isArray(row.character) ? row.character[0] : row.character;
+  const stage = Array.isArray(row.stage) ? row.stage[0] : row.stage;
+
+  return {
+    ok: true as const,
+    data: {
+      id: String(row.id),
+      goldCost: Number(row.gold_cost),
+      videoUrl: String(row.video_url),
+      characterName: String((character as { name?: string })?.name ?? ""),
+      stageVersionLabel: String((stage as { version_label?: string })?.version_label ?? ""),
+      stageBossName: String((stage as { boss_name?: string })?.boss_name ?? ""),
+    },
+  };
+}
+
+/**
+ * Approve a pending submission: copy it into clear_records and delete it.
+ * If clear_records insert fails the pending row is preserved.
+ */
+export async function approvePendingRecord(id: string) {
+  idSchema.parse({ id });
+  const db = getAdminDbOrError();
+
+  if (!db.ok) {
+    return db;
+  }
+
+  const pendingResult = await db.supabase
+    .from("pending_records")
+    .select("character_id, stage_id, gold_cost, video_url")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (pendingResult.error) {
+    throw pendingResult.error;
+  }
+
+  if (!pendingResult.data) {
+    return {
+      ok: false as const,
+      response: NextResponse.json({ error: "该投稿不存在或已被处理。" }, { status: 404 }),
+    };
+  }
+
+  const insertResult = await db.supabase
+    .from("clear_records")
+    .insert({
+      character_id: pendingResult.data.character_id,
+      stage_id: pendingResult.data.stage_id,
+      gold_cost: pendingResult.data.gold_cost,
+      video_url: pendingResult.data.video_url,
+    })
+    .select("*")
+    .single();
+
+  if (insertResult.error) {
+    throw insertResult.error;
+  }
+
+  const deleteResult = await db.supabase.from("pending_records").delete().eq("id", id);
+
+  if (deleteResult.error) {
+    throw deleteResult.error;
+  }
+
+  return { ok: true as const, data: insertResult.data };
+}
+
+export async function rejectPendingRecord(id: string) {
+  idSchema.parse({ id });
+  const db = getAdminDbOrError();
+
+  if (!db.ok) {
+    return db;
+  }
+
+  const result = await db.supabase.from("pending_records").delete().eq("id", id);
 
   if (result.error) {
     throw result.error;
