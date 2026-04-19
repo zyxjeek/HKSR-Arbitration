@@ -5,6 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { getCharacterDetail } from "@/lib/data-service";
 
+export const revalidate = 0;
+
 export default async function CharacterDetailPage({
   params,
 }: {
@@ -22,8 +24,13 @@ export default async function CharacterDetailPage({
       <SectionShell
         eyebrow="Character View"
         title={`${data.character.name} · 跨期最低金趋势`}
-        description="折线图按王棋版本时间顺序排列。点击节点可查看该期最低金对应的视频记录。"
-        action={<Badge>{data.timeline.length} 期已收录</Badge>}
+        description={"折线图按王棋版本时间顺序排列，所有王棋期数都会显示。点击节点可直接跳转对应视频；未收录的期数标记为\"未收录\"。"}
+        action={
+          <Badge>
+            {data.timeline.filter((p) => p.minGoldCost !== null).length} /{" "}
+            {data.timeline.length} 期已收录
+          </Badge>
+        }
       >
         <CharacterLineChart timeline={data.timeline} />
       </SectionShell>

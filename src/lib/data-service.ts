@@ -4,6 +4,7 @@ import {
   type ArbiterStage,
   type Character,
   type CharacterDetailData,
+  type CharacterTimelinePoint,
   type HomeData,
   type JoinedRecord,
   type PendingRecord,
@@ -88,12 +89,28 @@ function getMockCharacterDetail(slug: string): CharacterDetailData | null {
     return null;
   }
 
-  return {
-    character,
-    timeline: buildCharacterTimeline(
-      mockDb.records.filter((record) => record.characterId === character.id),
-    ),
-  };
+  const recorded = buildCharacterTimeline(
+    mockDb.records.filter((record) => record.characterId === character.id),
+  );
+  const recordedByStage = new Map(recorded.map((p) => [p.stageId, p]));
+
+  const timeline = sortStages(mockDb.stages).map<CharacterTimelinePoint>((stage) => {
+    const existing = recordedByStage.get(stage.id);
+    if (existing) return existing;
+    return {
+      characterId: character.id,
+      characterName: character.name,
+      characterSlug: character.slug,
+      stageId: stage.id,
+      versionLabel: stage.versionLabel,
+      versionSortKey: stage.versionSortKey,
+      bossName: stage.bossName,
+      minGoldCost: null,
+      videoUrl: null,
+    };
+  });
+
+  return { character, timeline };
 }
 
 export async function getHomeData(): Promise<HomeData> {
@@ -216,20 +233,50 @@ export async function getCharacterDetail(slug: string): Promise<CharacterDetailD
     return null;
   }
 
-  const timelineResult = await supabase
-    .from("character_stage_min_records")
-    .select("*")
-    .eq("character_id", characterResult.data.id)
-    .order("stage_version_sort_key", { ascending: true })
-    .order("created_at", { ascending: true });
+  const [timelineResult, stagesResult] = await Promise.all([
+    supabase
+      .from("character_stage_min_records")
+      .select("*")
+      .eq("character_id", characterResult.data.id)
+      .order("stage_version_sort_key", { ascending: true })
+      .order("created_at", { ascending: true }),
+    supabase.from("arbiter_stages").select("*").order("version_sort_key", { ascending: true }),
+  ]);
 
   if (timelineResult.error) {
     throw timelineResult.error;
   }
 
+  if (stagesResult.error) {
+    throw stagesResult.error;
+  }
+
+  const character = mapCharacterRow(characterResult.data);
+  const recorded = buildCharacterTimeline((timelineResult.data ?? []).map(mapJoinedRecordRow));
+  const recordedByStage = new Map(recorded.map((p) => [p.stageId, p]));
+
+  // 把所有王棋期数都放入时间轴，未收录的用 null 占位
+  const timeline = (stagesResult.data ?? [])
+    .map(mapStageRow)
+    .map<CharacterTimelinePoint>((stage) => {
+      const existing = recordedByStage.get(stage.id);
+      if (existing) return existing;
+      return {
+        characterId: character.id,
+        characterName: character.name,
+        characterSlug: character.slug,
+        stageId: stage.id,
+        versionLabel: stage.versionLabel,
+        versionSortKey: stage.versionSortKey,
+        bossName: stage.bossName,
+        minGoldCost: null,
+        videoUrl: null,
+      };
+    });
+
   return {
-    character: mapCharacterRow(characterResult.data),
-    timeline: buildCharacterTimeline((timelineResult.data ?? []).map(mapJoinedRecordRow)),
+    character,
+    timeline,
   };
 }
 

@@ -60,8 +60,8 @@ export interface CharacterTimelinePoint {
   versionLabel: string;
   versionSortKey: number;
   bossName: string;
-  minGoldCost: number;
-  videoUrl: string;
+  minGoldCost: number | null;
+  videoUrl: string | null;
 }
 
 export interface CharacterRankingItem {

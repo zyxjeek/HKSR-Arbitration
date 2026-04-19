@@ -9,6 +9,8 @@ import { disclaimerShort } from "@/lib/constants";
 import { getHomeData } from "@/lib/data-service";
 import { formatAverageGold, formatStageLabel } from "@/lib/format";
 
+export const revalidate = 0;
+
 export default async function Home() {
   const data = await getHomeData();
 
