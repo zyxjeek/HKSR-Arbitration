@@ -21,14 +21,15 @@ export function SectionShell({
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div className="space-y-2">
           {eyebrow ? (
-            <p className="display-text text-xs uppercase tracking-[0.34em] text-cyan-200/70">
-              {eyebrow}
-            </p>
+            <div className="flex items-center gap-2">
+              <span className="inline-block h-px w-8 bg-gradient-to-r from-cyan-300/80 to-transparent" />
+              <p className="eyebrow">{eyebrow}</p>
+            </div>
           ) : null}
-          <CardTitle className="text-xl sm:text-2xl">{title}</CardTitle>
-          {description ? <CardDescription>{description}</CardDescription> : null}
+          <CardTitle>{title}</CardTitle>
+          {description ? <CardDescription className="max-w-3xl">{description}</CardDescription> : null}
         </div>
-        {action}
+        {action ? <div className="shrink-0">{action}</div> : null}
       </div>
       {children}
     </Card>

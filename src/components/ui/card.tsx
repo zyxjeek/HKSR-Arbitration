@@ -5,7 +5,7 @@ export function Card({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
   return (
     <div
       className={cn(
-        "glass-panel rounded-3xl border border-white/10 p-6 text-white/92",
+        "glass-panel relative rounded-[1.75rem] p-6 text-white/92 sm:p-7",
         className,
       )}
       {...props}
@@ -16,7 +16,10 @@ export function Card({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
 export function CardTitle({ className, ...props }: HTMLAttributes<HTMLHeadingElement>) {
   return (
     <h2
-      className={cn("display-text text-lg font-semibold uppercase tracking-[0.22em]", className)}
+      className={cn(
+        "text-xl font-semibold tracking-tight text-white sm:text-2xl",
+        className,
+      )}
       {...props}
     />
   );
