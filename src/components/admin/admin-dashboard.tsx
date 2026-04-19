@@ -9,6 +9,7 @@ import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import type {
   AdminBootstrapData,
   AdminRecordListItem,
@@ -436,25 +437,20 @@ export function AdminDashboard({
                 <div className="grid gap-3 sm:grid-cols-2">
                   <div>
                     <Label htmlFor="record-character-filter">按角色筛选</Label>
-                    <select
+                    <SearchableSelect
                       id="record-character-filter"
-                      className="h-11 w-full rounded-xl border border-white/10 bg-white/5 px-3 text-sm text-white"
+                      placeholder="全部角色"
                       value={recordCharacterFilter}
-                      onChange={(event) => setRecordCharacterFilter(event.target.value)}
-                    >
-                      <option value="">全部角色</option>
-                      {data.characters.map((character) => (
-                        <option key={character.id} value={character.id}>
-                          {character.name}
-                        </option>
-                      ))}
-                    </select>
+                      onChange={setRecordCharacterFilter}
+                      options={data.characters.map((c) => ({ value: c.id, label: c.name }))}
+                    />
                   </div>
                   <div>
                     <Label htmlFor="record-stage-filter">按期数筛选</Label>
                     <select
                       id="record-stage-filter"
                       className="h-11 w-full rounded-xl border border-white/10 bg-white/5 px-3 text-sm text-white"
+                      style={{ colorScheme: "dark" }}
                       value={recordStageFilter}
                       onChange={(event) => setRecordStageFilter(event.target.value)}
                     >
@@ -512,27 +508,22 @@ export function AdminDashboard({
               <div className="mt-4 space-y-4">
                 <div>
                   <Label htmlFor="record-character">主C</Label>
-                  <select
+                  <SearchableSelect
                     id="record-character"
-                    className="h-11 w-full rounded-xl border border-white/10 bg-white/5 px-3 text-sm text-white"
+                    placeholder="请选择角色"
                     value={recordForm.characterId}
-                    onChange={(event) =>
-                      setRecordForm((current) => ({ ...current, characterId: event.target.value }))
+                    onChange={(val) =>
+                      setRecordForm((current) => ({ ...current, characterId: val }))
                     }
-                  >
-                    <option value="">请选择角色</option>
-                    {data.characters.map((character) => (
-                      <option key={character.id} value={character.id}>
-                        {character.name}
-                      </option>
-                    ))}
-                  </select>
+                    options={data.characters.map((c) => ({ value: c.id, label: c.name }))}
+                  />
                 </div>
                 <div>
                   <Label htmlFor="record-stage">王棋期数</Label>
                   <select
                     id="record-stage"
                     className="h-11 w-full rounded-xl border border-white/10 bg-white/5 px-3 text-sm text-white"
+                    style={{ colorScheme: "dark" }}
                     value={recordForm.stageId}
                     onChange={(event) =>
                       setRecordForm((current) => ({ ...current, stageId: event.target.value }))
