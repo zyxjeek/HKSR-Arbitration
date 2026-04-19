@@ -2,6 +2,8 @@ import { AnnouncementList } from "@/components/site/announcement-list";
 import { SectionShell } from "@/components/site/section-shell";
 import { getAnnouncementsData } from "@/lib/data-service";
 
+export const revalidate = 0;
+
 export default async function AnnouncementsPage() {
   const announcements = await getAnnouncementsData();
 
