@@ -54,11 +54,16 @@ type AnnouncementFormState = { title: string; bodyText: string; publishedAt: str
 const emptyCharacterForm: CharacterFormState = { name: "" };
 const emptyStageForm: StageFormState = { versionLabel: "", bossName: "" };
 const emptyRecordForm: RecordFormState = { characterId: "", stageId: "", goldCost: "", videoUrl: "" };
-const emptyAnnouncementForm: AnnouncementFormState = {
-  title: "",
-  bodyText: "",
-  publishedAt: new Date().toISOString().slice(0, 16),
-};
+function nowInUTC8() {
+  const now = new Date();
+  const offset = 8 * 60; // UTC+8 in minutes
+  const local = new Date(now.getTime() + (offset + now.getTimezoneOffset()) * 60_000);
+  return local.toISOString().slice(0, 16);
+}
+
+function makeEmptyAnnouncementForm(): AnnouncementFormState {
+  return { title: "", bodyText: "", publishedAt: nowInUTC8() };
+}
 
 export function AdminDashboard({
   initialData,
@@ -82,7 +87,7 @@ export function AdminDashboard({
   const [stageForm, setStageForm] = useState<StageFormState>(emptyStageForm);
   const [recordForm, setRecordForm] = useState<RecordFormState>(emptyRecordForm);
   const [announcementForm, setAnnouncementForm] =
-    useState<AnnouncementFormState>(emptyAnnouncementForm);
+    useState<AnnouncementFormState>(makeEmptyAnnouncementForm());
 
   const [recordCharacterFilter, setRecordCharacterFilter] = useState("");
   const [recordStageFilter, setRecordStageFilter] = useState("");
@@ -176,7 +181,7 @@ export function AdminDashboard({
       }),
     });
     await refreshData();
-    setAnnouncementForm(emptyAnnouncementForm);
+    setAnnouncementForm(makeEmptyAnnouncementForm());
     setEditingAnnouncement(null);
     handleSuccess(editingAnnouncement ? "公告已更新。" : "公告已新增。");
   }
@@ -668,7 +673,7 @@ export function AdminDashboard({
                     variant="ghost"
                     onClick={() => {
                       setEditingAnnouncement(null);
-                      setAnnouncementForm(emptyAnnouncementForm);
+                      setAnnouncementForm(makeEmptyAnnouncementForm());
                     }}
                   >
                     重置

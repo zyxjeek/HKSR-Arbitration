@@ -51,7 +51,7 @@ const announcements: Announcement[] = [
     id: "bbbbbbb2-bbbb-4bbb-8bbb-bbbbbbbbbbb2",
     title: "统计口径说明",
     bodyText:
-      "角色榜单采用“各期最低金数平均值”排序。\n若同一期存在多条同最低金记录，页面会在详情弹窗中全部展示。",
+      '角色榜单采用”各期最低金数平均值”排序。',
     publishedAt: "2026-04-12T12:00:00.000Z",
     createdAt: "2026-04-12T12:00:00.000Z",
     updatedAt: "2026-04-12T12:00:00.000Z",

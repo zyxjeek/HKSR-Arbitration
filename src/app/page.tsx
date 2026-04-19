@@ -36,9 +36,6 @@ export default async function Home() {
                   <ArrowRight className="size-4" />
                 </Link>
               </Button>
-              <Button asChild variant="outline">
-                <Link href="/about">项目说明与声明</Link>
-              </Button>
             </div>
           </div>
           <div className="rounded-[2rem] border border-cyan-300/12 bg-[#04111f] p-5">
@@ -49,8 +46,7 @@ export default async function Home() {
               </div>
               <ul className="space-y-3 text-sm leading-7 text-white/70">
                 <li>每期图表只取每位主C的最低金数。</li>
-                <li>角色榜按“各期最低金数平均值”升序排列。</li>
-                <li>同最低金多条记录会在详情弹窗中全部展示。</li>
+                <li>角色榜按”各期最低金数平均值”升序排列。</li>
               </ul>
               <div className="rounded-2xl border border-amber-300/15 bg-amber-300/8 p-4 text-sm text-amber-50/88">
                 <div className="mb-2 flex items-center gap-2">
