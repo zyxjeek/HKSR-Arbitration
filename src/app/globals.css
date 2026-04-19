@@ -1,0 +1,115 @@
+@import "tailwindcss";
+
+:root {
+  --background: #07111f;
+  --foreground: #edf7ff;
+  --card: rgba(6, 22, 40, 0.78);
+  --card-strong: rgba(8, 30, 56, 0.92);
+  --muted: #8aa5bf;
+  --accent: #47d1ff;
+  --accent-strong: #8dffea;
+  --border: rgba(148, 214, 255, 0.18);
+  --ring: rgba(71, 209, 255, 0.55);
+  --danger: #ff7986;
+  --shadow: 0 24px 80px rgba(0, 0, 0, 0.38);
+  --grid-color: rgba(141, 255, 234, 0.05);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-strong: var(--card-strong);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-border: var(--border);
+  --color-danger: var(--danger);
+  --font-sans: var(--font-noto-sans-sc);
+  --font-display: var(--font-orbitron);
+  --font-mono: var(--font-space-mono);
+}
+
+html {
+  background:
+    radial-gradient(circle at top, rgba(71, 209, 255, 0.16), transparent 32%),
+    linear-gradient(180deg, #0a1830 0%, #07111f 46%, #050b14 100%);
+  color: var(--foreground);
+}
+
+body {
+  min-height: 100vh;
+  background:
+    linear-gradient(var(--grid-color) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-color) 1px, transparent 1px),
+    radial-gradient(circle at top, rgba(71, 209, 255, 0.16), transparent 32%),
+    linear-gradient(180deg, #0a1830 0%, #07111f 46%, #050b14 100%);
+  background-size: 52px 52px, 52px 52px, auto, auto;
+  background-position: center;
+  color: var(--foreground);
+  font-family: var(--font-noto-sans-sc), sans-serif;
+}
+
+* {
+  border-color: var(--border);
+}
+
+a {
+  transition: color 160ms ease, opacity 160ms ease;
+}
+
+::selection {
+  background: rgba(71, 209, 255, 0.22);
+}
+
+.glass-panel {
+  background: linear-gradient(180deg, rgba(15, 40, 70, 0.92), rgba(7, 20, 36, 0.9));
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(18px);
+}
+
+.display-text {
+  font-family: var(--font-orbitron), sans-serif;
+  letter-spacing: 0.08em;
+}
+
+.text-balance {
+  text-wrap: balance;
+}
+
+.prose-notice {
+  white-space: pre-wrap;
+  line-height: 1.9;
+  color: rgba(237, 247, 255, 0.86);
+}
+
+.chart-shell {
+  position: relative;
+  overflow: hidden;
+}
+
+.chart-shell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at top right, rgba(71, 209, 255, 0.14), transparent 28%),
+    linear-gradient(180deg, rgba(141, 255, 234, 0.05), transparent 44%);
+}
+
+.animate-float-in {
+  animation: float-in 560ms ease-out both;
+}
+
+@keyframes float-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
