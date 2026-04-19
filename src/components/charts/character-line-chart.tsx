@@ -1,15 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import type { EChartsOption } from "echarts";
 import type { CharacterTimelinePoint } from "@/lib/types";
 import { EChartsReact } from "@/components/charts/echarts-react";
 import { EmptyState } from "@/components/site/empty-state";
-import { StatDetailDialog } from "@/components/charts/stat-detail-dialog";
 
 export function CharacterLineChart({ timeline }: { timeline: CharacterTimelinePoint[] }) {
-  const [selected, setSelected] = useState<CharacterTimelinePoint | null>(null);
-
   const option = useMemo<EChartsOption>(() => {
     return {
       tooltip: { trigger: "axis" },
@@ -45,17 +42,17 @@ export function CharacterLineChart({ timeline }: { timeline: CharacterTimelinePo
   }
 
   return (
-    <>
-      <div className="chart-shell rounded-3xl border border-white/10 bg-[#04111f] p-4">
-        <EChartsReact
-          option={option}
-          style={{ height: 420, width: "100%" }}
-          onEvents={{
-            click: (params: { dataIndex: number }) => setSelected(timeline[params.dataIndex] ?? null),
-          }}
-        />
-      </div>
-      <StatDetailDialog item={selected} open={Boolean(selected)} onOpenChange={(open) => !open && setSelected(null)} />
-    </>
+    <div className="chart-shell rounded-3xl border border-white/10 bg-[#04111f] p-4">
+      <EChartsReact
+        option={option}
+        style={{ height: 420, width: "100%" }}
+        onEvents={{
+          click: (params: { dataIndex: number }) => {
+            const item = timeline[params.dataIndex];
+            if (item?.videoUrl) window.open(item.videoUrl, "_blank", "noreferrer");
+          },
+        }}
+      />
+    </div>
   );
 }

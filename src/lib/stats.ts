@@ -6,19 +6,9 @@ import {
   type CharacterRankingItem,
   type CharacterTimelinePoint,
   type JoinedRecord,
-  type RecordReference,
   type StageMinStat,
 } from "@/lib/types";
 import { roundToSingleDecimal } from "@/lib/utils";
-
-function toRecordReference(record: JoinedRecord): RecordReference {
-  return {
-    id: record.id,
-    goldCost: record.goldCost,
-    videoUrl: record.videoUrl,
-    createdAt: record.createdAt,
-  };
-}
 
 export function buildStageMinStats(records: JoinedRecord[]): StageMinStat[] {
   const grouped = new Map<string, JoinedRecord[]>();
@@ -33,21 +23,20 @@ export function buildStageMinStats(records: JoinedRecord[]): StageMinStat[] {
   return [...grouped.values()]
     .map((bucket) => {
       const minGoldCost = Math.min(...bucket.map((item) => item.goldCost));
-      const minRecords = bucket
+      const best = bucket
         .filter((item) => item.goldCost === minGoldCost)
-        .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
-      const base = minRecords[0];
+        .sort((a, b) => a.createdAt.localeCompare(b.createdAt))[0];
 
       return {
-        characterId: base.characterId,
-        characterName: base.characterName,
-        characterSlug: base.characterSlug,
-        stageId: base.stageId,
-        versionLabel: base.stageVersionLabel,
-        versionSortKey: base.stageVersionSortKey,
-        bossName: base.stageBossName,
+        characterId: best.characterId,
+        characterName: best.characterName,
+        characterSlug: best.characterSlug,
+        stageId: best.stageId,
+        versionLabel: best.stageVersionLabel,
+        versionSortKey: best.stageVersionSortKey,
+        bossName: best.stageBossName,
         minGoldCost,
-        records: minRecords.map(toRecordReference),
+        videoUrl: best.videoUrl,
       };
     })
     .sort((a, b) => a.minGoldCost - b.minGoldCost || a.characterName.localeCompare(b.characterName));

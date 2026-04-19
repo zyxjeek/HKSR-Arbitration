@@ -39,12 +39,6 @@ export interface Announcement {
   updatedAt: string;
 }
 
-export interface RecordReference {
-  id: string;
-  goldCost: number;
-  videoUrl: string;
-  createdAt: string;
-}
 
 export interface StageMinStat {
   characterId: string;
@@ -55,7 +49,7 @@ export interface StageMinStat {
   versionSortKey: number;
   bossName: string;
   minGoldCost: number;
-  records: RecordReference[];
+  videoUrl: string;
 }
 
 export interface CharacterTimelinePoint {
@@ -67,7 +61,7 @@ export interface CharacterTimelinePoint {
   versionSortKey: number;
   bossName: string;
   minGoldCost: number;
-  records: RecordReference[];
+  videoUrl: string;
 }
 
 export interface CharacterRankingItem {

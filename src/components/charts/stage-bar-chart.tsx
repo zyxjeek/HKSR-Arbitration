@@ -1,15 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import type { EChartsOption } from "echarts";
 import type { StageMinStat } from "@/lib/types";
 import { EChartsReact } from "@/components/charts/echarts-react";
-import { StatDetailDialog } from "@/components/charts/stat-detail-dialog";
 import { EmptyState } from "@/components/site/empty-state";
 
 export function StageBarChart({ stats }: { stats: StageMinStat[] }) {
-  const [selected, setSelected] = useState<StageMinStat | null>(null);
-
   const option = useMemo<EChartsOption>(() => {
     return {
       tooltip: {
@@ -50,17 +47,17 @@ export function StageBarChart({ stats }: { stats: StageMinStat[] }) {
   }
 
   return (
-    <>
-      <div className="chart-shell rounded-3xl border border-white/10 bg-[#04111f] p-4">
-        <EChartsReact
-          option={option}
-          style={{ height: 420, width: "100%" }}
-          onEvents={{
-            click: (params: { dataIndex: number }) => setSelected(stats[params.dataIndex] ?? null),
-          }}
-        />
-      </div>
-      <StatDetailDialog item={selected} open={Boolean(selected)} onOpenChange={(open) => !open && setSelected(null)} />
-    </>
+    <div className="chart-shell rounded-3xl border border-white/10 bg-[#04111f] p-4">
+      <EChartsReact
+        option={option}
+        style={{ height: 420, width: "100%" }}
+        onEvents={{
+          click: (params: { dataIndex: number }) => {
+            const item = stats[params.dataIndex];
+            if (item?.videoUrl) window.open(item.videoUrl, "_blank", "noreferrer");
+          },
+        }}
+      />
+    </div>
   );
 }
