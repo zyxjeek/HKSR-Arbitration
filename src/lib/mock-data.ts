@@ -155,5 +155,6 @@ export function getMockAdminBootstrap(): AdminBootstrapData {
     announcements,
     records,
     pendingRecords: [],
+    recordDisputes: [],
   };
 }

@@ -6,6 +6,7 @@ export const siteConfig = {
     { href: "/", label: "首页" },
     { href: "/announcements", label: "公告合集" },
     { href: "/submit", label: "游客投稿" },
+    { href: "/dispute", label: "记录指正" },
     { href: "/admin", label: "管理后台" },
   ],
 };
@@ -19,5 +20,6 @@ export const adminSectionLabels = {
   stages: "王棋敌人",
   records: "通关记录",
   submissions: "游客投稿",
+  disputes: "记录指正",
   announcements: "公告管理",
 } as const;

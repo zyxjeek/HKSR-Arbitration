@@ -8,6 +8,7 @@ import {
   type HomeData,
   type JoinedRecord,
   type PendingRecord,
+  type RecordDispute,
   type StageDetailData,
 } from "@/lib/types";
 import { hasServiceSupabaseEnv } from "@/lib/env";
@@ -318,14 +319,20 @@ export async function getAdminBootstrapData(): Promise<AdminBootstrapData> {
     return getMockAdminBootstrap();
   }
 
-  const [charactersResult, stagesResult, recordsResult, announcementsResult, pendingResult] =
-    await Promise.all([
-      supabase.from("characters").select("*").order("name", { ascending: true }),
-      supabase.from("arbiter_stages").select("*").order("version_sort_key", { ascending: true }),
-      supabase
-        .from("clear_records")
-        .select(
-          `
+  const [
+    charactersResult,
+    stagesResult,
+    recordsResult,
+    announcementsResult,
+    pendingResult,
+    disputesResult,
+  ] = await Promise.all([
+    supabase.from("characters").select("*").order("name", { ascending: true }),
+    supabase.from("arbiter_stages").select("*").order("version_sort_key", { ascending: true }),
+    supabase
+      .from("clear_records")
+      .select(
+        `
             id,
             character_id,
             stage_id,
@@ -335,17 +342,17 @@ export async function getAdminBootstrapData(): Promise<AdminBootstrapData> {
             character:characters!clear_records_character_id_fkey(id, name, slug),
             stage:arbiter_stages!clear_records_stage_id_fkey(id, version_label, version_sort_key, boss_name)
           `,
-        )
-        .order("created_at", { ascending: false }),
-      supabase
-        .from("announcements")
-        .select("*")
-        .order("is_pinned", { ascending: false })
-        .order("published_at", { ascending: false }),
-      supabase
-        .from("pending_records")
-        .select(
-          `
+      )
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("announcements")
+      .select("*")
+      .order("is_pinned", { ascending: false })
+      .order("published_at", { ascending: false }),
+    supabase
+      .from("pending_records")
+      .select(
+        `
             id,
             character_id,
             stage_id,
@@ -355,9 +362,23 @@ export async function getAdminBootstrapData(): Promise<AdminBootstrapData> {
             character:characters!pending_records_character_id_fkey(name),
             stage:arbiter_stages!pending_records_stage_id_fkey(version_label, boss_name)
           `,
-        )
-        .order("created_at", { ascending: false }),
-    ]);
+      )
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("record_disputes")
+      .select(
+        `
+            id,
+            character_id,
+            stage_id,
+            reason,
+            created_at,
+            character:characters!record_disputes_character_id_fkey(name),
+            stage:arbiter_stages!record_disputes_stage_id_fkey(version_label, boss_name)
+          `,
+      )
+      .order("created_at", { ascending: false }),
+  ]);
 
   if (charactersResult.error) {
     throw charactersResult.error;
@@ -378,6 +399,25 @@ export async function getAdminBootstrapData(): Promise<AdminBootstrapData> {
   if (pendingResult.error) {
     throw pendingResult.error;
   }
+
+  if (disputesResult.error) {
+    throw disputesResult.error;
+  }
+
+  const recordDisputes: RecordDispute[] = (disputesResult.data ?? []).map((row) => {
+    const character = Array.isArray(row.character) ? row.character[0] : row.character;
+    const stage = Array.isArray(row.stage) ? row.stage[0] : row.stage;
+    return {
+      id: String(row.id),
+      characterId: String(row.character_id),
+      characterName: String(character?.name ?? ""),
+      stageId: String(row.stage_id),
+      stageVersionLabel: String(stage?.version_label ?? ""),
+      stageBossName: String(stage?.boss_name ?? ""),
+      reason: String(row.reason),
+      createdAt: String(row.created_at),
+    };
+  });
 
   const pendingRecords: PendingRecord[] = (pendingResult.data ?? []).map((row) => {
     const character = Array.isArray(row.character) ? row.character[0] : row.character;
@@ -420,6 +460,7 @@ export async function getAdminBootstrapData(): Promise<AdminBootstrapData> {
     records,
     announcements: (announcementsResult.data ?? []).map(mapAnnouncementRow),
     pendingRecords,
+    recordDisputes,
   };
 }
 

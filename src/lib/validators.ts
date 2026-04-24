@@ -61,6 +61,16 @@ export const announcementInputSchema = z.object({
   isPinned: z.coerce.boolean().optional().default(false),
 });
 
+export const disputeSubmissionSchema = z.object({
+  characterId: z.uuid("请选择有效的主C"),
+  stageId: z.uuid("请选择有效的王棋期数"),
+  reason: z
+    .string()
+    .trim()
+    .min(1, "请填写指正原因")
+    .max(500, "指正原因不能超过 500 字"),
+});
+
 export const idSchema = z.object({
   id: z.uuid("ID 格式无效"),
 });

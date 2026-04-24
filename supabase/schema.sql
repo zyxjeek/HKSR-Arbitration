@@ -51,6 +51,18 @@ create table if not exists public.pending_records (
 create index if not exists idx_pending_records_created_at
   on public.pending_records(created_at desc);
 
+create table if not exists public.record_disputes (
+  id uuid primary key default gen_random_uuid(),
+  character_id uuid not null references public.characters(id) on delete cascade,
+  stage_id uuid not null references public.arbiter_stages(id) on delete cascade,
+  reason text not null,
+  created_at timestamptz not null default timezone('utc', now()),
+  constraint record_disputes_reason_check check (char_length(reason) between 1 and 500)
+);
+
+create index if not exists idx_record_disputes_created_at
+  on public.record_disputes(created_at desc);
+
 create table if not exists public.announcements (
   id uuid primary key default gen_random_uuid(),
   title text not null,

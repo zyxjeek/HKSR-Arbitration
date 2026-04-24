@@ -6,6 +6,7 @@ import {
   announcementInputSchema,
   characterInputSchema,
   clearRecordInputSchema,
+  disputeSubmissionSchema,
   guestSubmissionSchema,
   idSchema,
   stageInputSchema,
@@ -509,6 +510,73 @@ export async function rejectPendingRecord(id: string) {
   }
 
   const result = await db.supabase.from("pending_records").delete().eq("id", id);
+
+  if (result.error) {
+    throw result.error;
+  }
+
+  return { ok: true as const };
+}
+
+/**
+ * Insert a guest dispute (指正) against a character+stage record. No auth required.
+ * Returns joined info so the caller (API route) can email the admin.
+ */
+export async function insertGuestDispute(payload: unknown) {
+  const parsed = disputeSubmissionSchema.parse(payload);
+  const db = getAdminDbOrError();
+
+  if (!db.ok) {
+    return db;
+  }
+
+  const insertResult = await db.supabase
+    .from("record_disputes")
+    .insert({
+      character_id: parsed.characterId,
+      stage_id: parsed.stageId,
+      reason: parsed.reason,
+    })
+    .select(
+      `
+        id,
+        reason,
+        created_at,
+        character:characters!record_disputes_character_id_fkey(name),
+        stage:arbiter_stages!record_disputes_stage_id_fkey(version_label, boss_name)
+      `,
+    )
+    .single();
+
+  if (insertResult.error) {
+    throw insertResult.error;
+  }
+
+  const row = insertResult.data as Record<string, unknown>;
+  const character = Array.isArray(row.character) ? row.character[0] : row.character;
+  const stage = Array.isArray(row.stage) ? row.stage[0] : row.stage;
+
+  return {
+    ok: true as const,
+    data: {
+      id: String(row.id),
+      reason: String(row.reason),
+      characterName: String((character as { name?: string })?.name ?? ""),
+      stageVersionLabel: String((stage as { version_label?: string })?.version_label ?? ""),
+      stageBossName: String((stage as { boss_name?: string })?.boss_name ?? ""),
+    },
+  };
+}
+
+export async function resolveDispute(id: string) {
+  idSchema.parse({ id });
+  const db = getAdminDbOrError();
+
+  if (!db.ok) {
+    return db;
+  }
+
+  const result = await db.supabase.from("record_disputes").delete().eq("id", id);
 
   if (result.error) {
     throw result.error;

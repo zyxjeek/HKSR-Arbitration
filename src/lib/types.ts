@@ -103,10 +103,22 @@ export interface PendingRecord {
   createdAt: string;
 }
 
+export interface RecordDispute {
+  id: string;
+  characterId: string;
+  characterName: string;
+  stageId: string;
+  stageVersionLabel: string;
+  stageBossName: string;
+  reason: string;
+  createdAt: string;
+}
+
 export interface AdminBootstrapData {
   characters: Character[];
   stages: ArbiterStage[];
   records: AdminRecordListItem[];
   announcements: Announcement[];
   pendingRecords: PendingRecord[];
+  recordDisputes: RecordDispute[];
 }

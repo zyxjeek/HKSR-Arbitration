@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import { LogOut, Pencil, Pin, PinOff, RefreshCcw, Trash2 } from "lucide-react";
+import { Check, LogOut, Pencil, Pin, PinOff, RefreshCcw, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -322,11 +322,24 @@ export function AdminDashboard({
 
       <Tabs defaultValue="characters" className="space-y-6">
         <TabsList>
-          {Object.entries(adminSectionLabels).map(([value, label]) => (
-            <TabsTrigger key={value} value={value}>
-              {label}
-            </TabsTrigger>
-          ))}
+          {Object.entries(adminSectionLabels).map(([value, label]) => {
+            const pendingCount =
+              value === "submissions"
+                ? data.pendingRecords.length
+                : value === "disputes"
+                  ? data.recordDisputes.length
+                  : 0;
+            return (
+              <TabsTrigger key={value} value={value}>
+                {label}
+                {pendingCount > 0 ? (
+                  <span className="ml-1.5 inline-flex min-w-[1.25rem] items-center justify-center rounded-full bg-rose-500/80 px-1.5 py-0.5 text-[10px] font-semibold leading-none text-white">
+                    {pendingCount}
+                  </span>
+                ) : null}
+              </TabsTrigger>
+            );
+          })}
         </TabsList>
 
         <TabsContent value="characters">
@@ -682,6 +695,62 @@ export function AdminDashboard({
                         >
                           <Trash2 className="size-4" />
                           拒绝
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="disputes">
+          <Card>
+            <div className="mb-4">
+              <CardTitle className="mb-2">待处理指正</CardTitle>
+              <CardDescription>
+                游客通过 /dispute 页面提交的记录疑义。核实后可前往对应通关记录修改或删除，然后在此标记为已处理。
+              </CardDescription>
+            </div>
+            {data.recordDisputes.length === 0 ? (
+              <p className="rounded-2xl border border-white/10 bg-white/5 p-6 text-center text-sm text-white/55">
+                暂无待处理指正。
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {data.recordDisputes.map((item) => (
+                  <div key={item.id} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                      <div className="space-y-2 sm:flex-1">
+                        <p className="font-semibold text-white">
+                          {item.characterName} · Ver.{item.stageVersionLabel}
+                        </p>
+                        <p className="text-sm text-white/62">{item.stageBossName}</p>
+                        <p className="font-mono text-xs text-cyan-200/75">
+                          提交于 {formatPublishedAt(item.createdAt)}
+                        </p>
+                        <p className="whitespace-pre-wrap rounded-xl border border-amber-300/20 bg-amber-300/5 p-3 text-sm leading-6 text-amber-50">
+                          {item.reason}
+                        </p>
+                      </div>
+                      <div className="flex flex-wrap gap-2 sm:flex-col">
+                        <Button
+                          size="sm"
+                          onClick={() => {
+                            if (!window.confirm("确认这条指正已处理完毕？")) return;
+                            withPending(async () => {
+                              await requestJson(`/api/admin/disputes?id=${item.id}`, {
+                                method: "DELETE",
+                              });
+                              await refreshData();
+                              handleSuccess("已标记为处理完毕。");
+                            });
+                          }}
+                          disabled={!mutationsEnabled || isPending}
+                        >
+                          <Check className="size-4" />
+                          已处理
                         </Button>
                       </div>
                     </div>
